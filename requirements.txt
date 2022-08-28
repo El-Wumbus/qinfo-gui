@@ -1,1 +1,2 @@
 qinfo-python==0.1.0
+nuitka
