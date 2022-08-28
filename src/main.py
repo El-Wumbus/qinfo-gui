@@ -93,33 +93,58 @@ class Window(Gtk.Window):
             uptimestring = ""
 
         return f"{cpuline}{ramline}{boardline}{osline}{kernelline}{uptimestring}{birthstring}"
-            
     
+    def get_logo(self) -> str:
+        return (
+        "                 █\n"
+        "                ███\n"
+        "               █████\n"
+        "              ███████\n"
+        "              ▀▀██████\n"
+        "            ██▄▄ ▀█████\n"
+        "           █████████████\n"
+        "          ███████████████\n"
+        "         █████████████████\n"
+        "        ███████████████████\n"
+        "       █████████▀▀▀▀████████\n"
+        "      ████████▀      ▀███████\n"
+        "     █████████        ████▀▀██\n"
+        "    ██████████        ██████▄▄▄\n"
+        "   ██████████▀        ▀█████████\n"
+        "  ██████▀▀▀              ▀▀██████\n"
+        " ███▀▀                       ▀▀███\n"
+        "▀▀                               ▀▀\n")
+    def set_margin(self,object, left, right, top, bottom):
+        object.set_margin_top(top)
+        object.set_margin_left(left)
+        object.set_margin_right(right)
+        object.set_margin_bottom(bottom)
     def __init__(self):
 
         super().__init__(title="qinfo-gui")
 
         hbox = Gtk.Box(spacing=10)
         hbox.set_homogeneous(False)
-        vbox_left = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-        vbox_left.set_homogeneous(False)
-        vbox_right = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-        vbox_right.set_homogeneous(False)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        vbox.set_homogeneous(False)
         
         
     
-        hbox.pack_start(vbox_left, True, True, 0)
-        hbox.pack_start(vbox_right, True, True, 0)
+        hbox.pack_start(vbox, True, True, 0)
 
-        self.label = Gtk.Label(label=self.get_values())
-        self.label.set_margin_top(50)
-
+        self.info = Gtk.Label(label=self.get_values())
+        self.info.set_margin_top(50)
+        self.set_margin(self.info, 20,20,10,10)
+        self.logo = Gtk.Label()
+        self.logo.set_markup(f"<tt>{self.get_logo()}</tt>")
+        self.logo.set_margin_top(50)
+        self.logo.set_justify(Gtk.Justification.LEFT)
         # Update info every 3 seconds
         x = threading.Thread(target=self.loop_sleep)
         x.daemon = True
         x.start()
-
-        vbox_left.pack_start(self.label, False, True, 0)
+        vbox.pack_start(self.logo, False, True,0)
+        vbox.pack_start(self.info, False, True, 0)
 
         # label1 = Gtk.Label(
         #     label="logoplaceholder"
@@ -138,7 +163,7 @@ class Window(Gtk.Window):
     def loop_sleep(self):
         
         while True:
-            self.label.set_text(self.get_values())
+            self.info.set_text(self.get_values())
             while Gtk.events_pending():
                     Gtk.main_iteration()
             time.sleep(3)
