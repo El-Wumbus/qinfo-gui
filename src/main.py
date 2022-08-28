@@ -1,5 +1,5 @@
+from modulefinder import packagePathMap
 import gi
-# import logging
 import qinfo
 import os
 from math import trunc
@@ -14,20 +14,23 @@ from gi.repository import Gtk
 class Window(Gtk.Window):
     
     def get_values(self) -> str:
-        silent = False
-        config_file = os.path.join(os.environ.get("HOME"), ".config/.qinfo.conf")
-        config = qinfo.parse_config(config_file, silent)
-
+        config = self.config
         if config is None:
             sys.exit(1)
     
+        # --------------------------------- Hostname --------------------------------- #
         if config["display_hostname"]:
-            hostnamestring = f"Hostname:\t\t{qinfo.hostname()}"
+            hostnamestring = f"Hostname:\t\t{qinfo.hostname()}\n"
+        else:
+            hostnamestring = ""
+
+        # ------------------------------------ CPU ----------------------------------- #
         if config["display_cpu"]:
             cpuline = f"CPU:\t\t\t\t{qinfo.cpu_model()} ({qinfo.core_count()} cores, {qinfo.thread_count()} threads)\n"
         else:
             cpuline = ""
-
+        
+        # ------------------------------------ RAM ----------------------------------- #
         if config["display_mem"]:
             available_memory = qinfo.avalible_memory()
             total_memory = qinfo.total_memory()
@@ -45,21 +48,25 @@ class Window(Gtk.Window):
         else:
             ramline = ""
 
+        # -------------------------------- motherboard ------------------------------- #
         if config["display_board"]:
             boardline = f"Motherboard:\t\t{qinfo.motherboard_model()}\n"
         else:
             boardline = ""
         
+        # ----------------------------- Operating System ----------------------------- #
         if config["display_os"]:
             osline = f"Operating System:\t{qinfo.os_name()}\n"
         else:
             osline = ""
 
+        # ------------------------------ Kernel Release ------------------------------ #
         if config["display_kernel"]:
             kernelline = f"Kernel Release:\t\t{qinfo.kernel_release()}\n"
         else:
             kernelline = ""
 
+        # ------------------------------ Root Birthdate ------------------------------ #
         if config["display_rootfs_birth"]:
             rootfsbirthdate = qinfo.rootfs_age()
             birthyear = rootfsbirthdate["year"]
@@ -72,6 +79,7 @@ class Window(Gtk.Window):
         else: 
             birthstring = ""
 
+        # ---------------------------------- Uptime ---------------------------------- #
         if config["display_uptime"]:
             uptime = qinfo.uptime()
             uptime_days = trunc(uptime / Defines.SECOND_DAY_CONVERSION)
@@ -92,35 +100,71 @@ class Window(Gtk.Window):
         else:
             uptimestring = ""
 
-        return f"{cpuline}{ramline}{boardline}{osline}{kernelline}{uptimestring}{birthstring}"
+        # --------------------------------- Username --------------------------------- #
+        if config["display_username"]:
+            usernameline = f"Username:\t\t{qinfo.username()}\n"
+        else:
+            usernameline = ""
+        
+        # ----------------------------------- Shell ---------------------------------- #
+        if config["display_shell"]:
+            shellline = f"Shell:\t\t\t{qinfo.shell()}\n"
+        else:
+            shellline = ""
+
+        
+
+        # ---------------------------- Entire Info String ---------------------------- #
+        return f"{cpuline}{ramline}{boardline}{osline}{hostnamestring}{usernameline}{kernelline}{shellline}{uptimestring}{birthstring}"
     
     def get_logo(self) -> str:
-        return (
-        "                 █\n"
-        "                ███\n"
-        "               █████\n"
-        "              ███████\n"
-        "              ▀▀██████\n"
-        "            ██▄▄ ▀█████\n"
-        "           █████████████\n"
-        "          ███████████████\n"
-        "         █████████████████\n"
-        "        ███████████████████\n"
-        "       █████████▀▀▀▀████████\n"
-        "      ████████▀      ▀███████\n"
-        "     █████████        ████▀▀██\n"
-        "    ██████████        ██████▄▄▄\n"
-        "   ██████████▀        ▀█████████\n"
-        "  ██████▀▀▀              ▀▀██████\n"
-        " ███▀▀                       ▀▀███\n"
-        "▀▀                               ▀▀\n")
+        config = self.config
+        if config["display_logo"]:
+            logo = qinfo.logo()
+        else:
+            logo = ""
+        return logo
+    
+    def get_packages(self) -> str:
+        if self.config["display_pkg_count"]:
+            packages = qinfo.packages()
+            pkglist = "Packages:\t\t\t"
+            pacmanpkg = packages["pacman"]
+            aptpkg = packages["apt"]
+            apkpkg = packages["apk"]
+            flatpakpkg = packages["flatpak"]
+            snappkg = packages["snap"]
+            if pacmanpkg > 0:
+                pkglist += f"{pacmanpkg} (Pacman) "
+            if aptpkg > 0:
+                pkglist += f"{aptpkg} (Apt) "
+            if apkpkg > 0:
+                pkglist += f"{apkpkg} (Apk)"
+            if flatpakpkg > 0:
+                pkglist += f"{flatpakpkg} (Flatpak)"
+            if snappkg > 0:
+                pkglist += f"{snappkg} (Snap)"
+
+            pkglist += "\n"
+        else:
+            pkglist = ""
+        
+        return pkglist
+
     def set_margin(self,object, left, right, top, bottom):
         object.set_margin_top(top)
         object.set_margin_left(left)
         object.set_margin_right(right)
         object.set_margin_bottom(bottom)
+    
     def __init__(self):
 
+        self.silent = False
+        self.config_file = os.path.join(os.environ.get("HOME"), ".config/.qinfo.conf")
+        self.config = qinfo.parse_config(self.config_file, self.silent)
+        self.packages = self.get_packages() # get packages only once as it's the slowest
+        if self.config is None:
+            sys.exit(1)
         super().__init__(title="qinfo-gui")
 
         hbox = Gtk.Box(spacing=10)
@@ -137,10 +181,10 @@ class Window(Gtk.Window):
         self.set_margin(self.info, 20,20,10,10)
         self.logo = Gtk.Label()
         self.logo.set_markup(f"<tt>{self.get_logo()}</tt>")
-        self.logo.set_margin_top(50)
+        self.set_margin(self.logo, 0,0,15,5)
         self.logo.set_justify(Gtk.Justification.LEFT)
         # Update info every 3 seconds
-        x = threading.Thread(target=self.loop_sleep)
+        x = threading.Thread(target=self.update_info)
         x.daemon = True
         x.start()
         vbox.pack_start(self.logo, False, True,0)
@@ -160,10 +204,10 @@ class Window(Gtk.Window):
     def stop(self):
       Gtk.main_quit()
 
-    def loop_sleep(self):
+    def update_info(self):
         
         while True:
-            self.info.set_text(self.get_values())
+            self.info.set_text(f"{self.get_values()}{self.packages}")
             while Gtk.events_pending():
                     Gtk.main_iteration()
             time.sleep(3)

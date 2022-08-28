@@ -1,10 +1,12 @@
+pythonfiles = $(wildcard ./src/*.py)
+
 default: compiled-package
 
 package: clean
-	
-install: package
 	python3 setup.py sdist bdist_wheel
-	sh -c "pip -r install dist/*.whl"
+
+install: package
+	sh -c "pip install dist/*.whl"
 
 upload: package
 	twine upload dist/*
