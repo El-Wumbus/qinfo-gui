@@ -1,0 +1,2 @@
+class Defines:
+    KILOBYTE_GIGABYTE_CONVERSION = 1048576
