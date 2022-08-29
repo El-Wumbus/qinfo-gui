@@ -1,3 +1,4 @@
+from ast import Store
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -8,8 +9,7 @@ import sys
 from math import trunc
 import os
 import qinfo
-from modulefinder import packagePathMap
-
+import argparse
 
 class Window(Gtk.Window):
     def get_values(self) -> str:
@@ -144,12 +144,12 @@ class Window(Gtk.Window):
         object.set_margin_right(right)
         object.set_margin_bottom(bottom)
 
-    def __init__(self):
-        self.silent = False
-        self.config_file = os.path.join(
-            os.environ.get("HOME"), ".config/.qinfo.conf")
+    def __init__(self, config:dict):
+        self.silent = config["silent"]
+        self.config_file = config["conf_file"]
         self.config = qinfo.parse_config(self.config_file, self.silent)
         self.packages = self.get_packages()  # get packages only once as it's the slowest
+
         if self.config is None:
             sys.exit(1)
         super().__init__(title="qinfo-gui")
@@ -176,14 +176,6 @@ class Window(Gtk.Window):
         vbox.pack_start(self.logo, False, True, 0)
         vbox.pack_start(self.info, False, True, 0)
 
-        # label1 = Gtk.Label(
-        #     label="logoplaceholder"
-        # )
-        # label1.set_line_wrap(True)
-        # label1.set_justify(Gtk.Justification.LEFT)
-        # label1.set_max_width_chars(32)
-        # vbox_right.pack_start(label1, True, True, 0)
-
         self.add(hbox)
 
     def stop(self):
@@ -199,7 +191,28 @@ class Window(Gtk.Window):
 
 
 def main() -> int:
-    window = Window()
+    module_description: str = "A gui for qinfo"
+    parser = argparse.ArgumentParser(description=module_description)
+    parser.add_argument(
+        "-c", "--config", help="Use this config file instead of the one at defualt location.", required=False, nargs='?')
+    parser.add_argument("-s", "--hide_warnings",help="Hide non-critical warnings", action="store_const",dest="hide_warnings", const=True)
+    args = parser.parse_args()
+
+    if args.hide_warnings != None:
+        silent = True
+    else:
+        silent = False
+
+    if args.config != None and args.config != "":
+        configuration_file = args.config
+    else:
+        configuration_file = os.path.join(
+            os.environ.get("HOME"), ".config/.qinfo.conf")
+    configs = {
+        "silent": silent,
+        "conf_file": configuration_file
+    }
+    window = Window(configs)
     window.connect("destroy", Gtk.main_quit)
     window.show_all()
     Gtk.main()

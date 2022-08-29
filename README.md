@@ -16,6 +16,15 @@ pip install qinfo-gui
 
 ## Usage
 
-```bash
-qinfo-gui
+```txt
+$ qinfo-gui --help 
+usage: qinfo-gui [-h] [-c [CONFIG]] [-s]
+
+A gui for qinfo
+
+options:
+  -h, --help            show this help message and exit
+  -c [CONFIG], --config [CONFIG]
+                        Use this config file instead of the one at defualt location.
+  -s, --hide_warnings   Hide non-critical warnings
 ```

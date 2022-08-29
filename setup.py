@@ -8,7 +8,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as fh:
     LONG_DESCRIPTION = "\n" + fh.read()
 
-VERSION = "0.0.1"
+VERSION = "0.0.3"
 DESCRIPTION = "A gui for qinfo"
 
 
@@ -21,7 +21,7 @@ setup(
     description=DESCRIPTION,
     long_description_content_type="text/markdown",
     long_description=LONG_DESCRIPTION,
-    install_requires=["qinfo-python==0.1.2"],
+    install_requires=["qinfo-python==0.1.3"],
     license='LGPLv3',
     entry_points = {'console_scripts': ['qinfo-gui = main:main']},
     keywords=["python", "gui", "gtk"],
