@@ -26,7 +26,7 @@ class Window(Gtk.Window):
 
         # ------------------------------------ CPU ----------------------------------- #
         if config["display_cpu"]:
-            cpuline = f"CPU:\t\t\t\t{qinfo.cpu_model()} ({qinfo.core_count()} cores, {qinfo.thread_count()} threads)\n"
+            cpuline = f"CPU:\t\t\t{qinfo.cpu_model()} ({qinfo.core_count()} cores, {qinfo.thread_count()} threads)\n"
         else:
             cpuline = ""
         
@@ -86,7 +86,7 @@ class Window(Gtk.Window):
             uptime_hours = trunc(uptime / Defines.SECOND_HOUR_CONVERSION % Defines.HOUR_DAY_CONVERSION)
             uptime_minutes = trunc(uptime / Defines.SECOND_MINUTE_CONVERSION % Defines.MINUTE_HOUR_CONVERSION)
             uptime_seconds = trunc(uptime % Defines.SECOND_MINUTE_CONVERSION)
-            uptimestring = "System Uptime:\t"
+            uptimestring = "System Uptime:\t\t"
             
             if uptime_days > 0:
                 uptimestring += f"{uptime_days:.0f} days "
@@ -127,24 +127,11 @@ class Window(Gtk.Window):
     
     def get_packages(self) -> str:
         if self.config["display_pkg_count"]:
-            packages = qinfo.packages()
             pkglist = "Packages:\t\t\t"
-            pacmanpkg = packages["pacman"]
-            aptpkg = packages["apt"]
-            apkpkg = packages["apk"]
-            flatpakpkg = packages["flatpak"]
-            snappkg = packages["snap"]
-            if pacmanpkg > 0:
-                pkglist += f"{pacmanpkg} (Pacman) "
-            if aptpkg > 0:
-                pkglist += f"{aptpkg} (Apt) "
-            if apkpkg > 0:
-                pkglist += f"{apkpkg} (Apk)"
-            if flatpakpkg > 0:
-                pkglist += f"{flatpakpkg} (Flatpak)"
-            if snappkg > 0:
-                pkglist += f"{snappkg} (Snap)"
-
+            packages = qinfo.packages()
+            for package in packages:
+                if packages[package] > 0:
+                    pkglist += f"{packages[package]} ({package.title()})"
             pkglist += "\n"
         else:
             pkglist = ""
@@ -158,7 +145,6 @@ class Window(Gtk.Window):
         object.set_margin_bottom(bottom)
     
     def __init__(self):
-
         self.silent = False
         self.config_file = os.path.join(os.environ.get("HOME"), ".config/.qinfo.conf")
         self.config = qinfo.parse_config(self.config_file, self.silent)
@@ -176,9 +162,11 @@ class Window(Gtk.Window):
     
         hbox.pack_start(vbox, True, True, 0)
 
-        self.info = Gtk.Label(label=self.get_values())
-        self.info.set_margin_top(50)
+        self.info = Gtk.Label()
+        self.info.set_markup(f"<tt>{self.get_values()}</tt>")
         self.set_margin(self.info, 20,20,10,10)
+        self.info.set_margin_top(50)
+
         self.logo = Gtk.Label()
         self.logo.set_markup(f"<tt>{self.get_logo()}</tt>")
         self.set_margin(self.logo, 0,0,15,5)
@@ -207,7 +195,7 @@ class Window(Gtk.Window):
     def update_info(self):
         
         while True:
-            self.info.set_text(f"{self.get_values()}{self.packages}")
+            self.info.set_markup(f"<tt>{self.get_values()}</tt>")
             while Gtk.events_pending():
                     Gtk.main_iteration()
             time.sleep(3)
