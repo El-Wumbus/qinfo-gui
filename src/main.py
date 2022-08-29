@@ -162,7 +162,6 @@ class Window(Gtk.Window):
         hbox.pack_start(vbox, True, True, 0)
 
         self.info = Gtk.Label()
-        self.info.set_markup(f"<tt>{self.get_values()}</tt>")
         self.set_margin(self.info, 20, 20, 10, 10)
         self.info.set_margin_top(50)
 
