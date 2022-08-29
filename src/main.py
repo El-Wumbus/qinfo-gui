@@ -127,11 +127,11 @@ class Window(Gtk.Window):
 
     def get_packages(self) -> str:
         if self.config["display_pkg_count"]:
-            pkglist = "Packages:\t\t\t"
+            pkglist = "Packages:\t\t"
             packages = qinfo.packages()
             for package in packages:
                 if packages[package] > 0:
-                    pkglist += f"{packages[package]} ({package.title()})"
+                    pkglist += f"{packages[package]} ({package.title()}) "
             pkglist += "\n"
         else:
             pkglist = ""
@@ -193,7 +193,7 @@ class Window(Gtk.Window):
     def update_info(self):
 
         while True:
-            self.info.set_markup(f"<tt>{self.get_values()}</tt>")
+            self.info.set_markup(f"<tt>{self.get_values()}{self.packages}</tt>")
             while Gtk.events_pending():
                 Gtk.main_iteration()
             time.sleep(3)
